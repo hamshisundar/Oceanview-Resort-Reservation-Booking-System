@@ -1,0 +1,48 @@
+@startuml Ocean View Resort - Sequence Diagram (Add New Reservation)
+!theme plain
+title Add New Reservation — Sequence Diagram\n(Check Availability, Calculate Total, Generate Reservation Number)
+
+actor Customer
+participant "Browser" as Browser
+participant "BookingServlet\n(Controller)" as Controller
+participant "BookingService" as BookingService
+participant "RoomService" as RoomService
+participant "BookingDAO" as BookingDAO
+participant "RoomDAO" as RoomDAO
+participant "Database" as DB
+
+Customer -> Browser : Submit booking form\n(roomId, checkIn, checkOut)
+Browser -> Controller : POST /book-room
+
+Controller -> Controller : Validate input (dates, roomId)
+Controller -> BookingService : createBooking(userId, roomId, checkIn, checkOut)
+
+BookingService -> RoomService : getRoomPrice(roomId)
+RoomService -> RoomDAO : findById(roomId)
+RoomDAO -> DB : SELECT room
+DB --> RoomDAO : row
+RoomDAO --> RoomService : Room
+RoomService --> BookingService : pricePerNight
+
+BookingService -> BookingDAO : hasConflict(roomId, checkIn, checkOut)
+BookingDAO -> DB : SELECT overlapping bookings
+DB --> BookingDAO : result set
+BookingDAO --> BookingService : true/false
+
+alt conflict
+  BookingService --> Controller : error (room not available)
+  Controller --> Browser : forward to form + message
+  Browser --> Customer : Show error
+else no conflict
+  BookingService -> BookingService : calculate total\n(nights × price)
+  BookingService -> BookingService : generate reservation number
+  BookingService -> BookingDAO : create(booking)
+  BookingDAO -> DB : INSERT booking
+  DB --> BookingDAO : ok
+  BookingDAO --> BookingService : Booking
+  BookingService --> Controller : Booking (with reservation number)
+  Controller --> Browser : redirect to confirmation\n?reservation=OV-...
+  Browser --> Customer : Display reservation details\n(Display Reservation Details)\n[optional: Print Bill]
+end
+
+@enduml

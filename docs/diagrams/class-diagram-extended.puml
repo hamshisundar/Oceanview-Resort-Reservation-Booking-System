@@ -1,0 +1,90 @@
+@startuml Ocean View Resort - Extended Class Diagram (Assignment-Style)
+!theme plain
+title Ocean View Resort — Extended Class Diagram\n(User inheritance; Reservation, Payment, Bill, Report)
+
+skinparam classAttributeIconSize 0
+
+abstract class User {
+  - userId : int
+  - name : String
+  - email : String
+  - password : String
+  - phone : String
+  + login() : boolean
+  + logout() : void
+  + getters/setters...
+}
+
+class Customer {
+  + browseRooms() : List<Room>
+  + addReservation() : Reservation
+  + viewBookingHistory() : List<Reservation>
+}
+
+class Staff {
+  + manageBookings() : void
+  + uploadRoomImages() : void
+}
+
+class Manager {
+  + manageRooms() : void
+  + viewReports() : Report
+}
+
+class Room {
+  - roomId : int
+  - roomName : String
+  - roomType : String
+  - pricePerNight : double
+  - description : String
+  + getPricePerNight() : double
+  + getters/setters...
+}
+
+class Reservation {
+  - reservationId : int
+  - reservationNumber : String
+  - checkIn : Date
+  - checkOut : Date
+  - totalPrice : double
+  - status : String
+  + calculateTotal() : double
+  + getters/setters...
+}
+
+class Payment {
+  - paymentId : int
+  - amount : double
+  - method : String
+  - status : String
+  + getters/setters...
+}
+
+class Bill {
+  - totalNights : int
+  - ratePerNight : double
+  - totalAmount : double
+  + calculateTotal() : double
+  + print() : void
+}
+
+class Report {
+  - period : String
+  - totalRevenue : double
+  - occupancyRate : double
+  + generate() : void
+}
+
+User <|-- Customer
+User <|-- Staff
+User <|-- Manager
+
+Customer "1" -- "*" Reservation : makes >
+Staff "1" -- "*" Reservation : manages >
+Manager "1" -- "*" Room : manages >
+Room "1" -- "*" Reservation : reserved in >
+Reservation "1" -- "*" Payment : has >
+Reservation "1" -- "1" Bill : generates >
+Manager "1" -- "*" Report : views >
+
+@enduml

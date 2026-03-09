@@ -1,0 +1,28 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+*.jar
+*.war
+*.ear
+!**/src/main/**/package-info.java
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local config (if you use a properties file)
+application-local.properties
