@@ -61,7 +61,7 @@ OcenView/
 
 ## Setup
 
-**Deploy first (fixes “page not working” / 404 on db-status):** From project root run `./deploy.sh` (or see **REGISTER-AND-DB-STATUS-FIX.md**). This builds the WAR, removes the old Tomcat app, deploys the new one, and restarts Tomcat so all pages (including `/oceanview/db-status`) work.
+**Deploy first (fixes “page not working” / 404 on db-status):** From project root run `./deploy.sh` For manual steps see `docs/DEPLOYMENT-TOMCAT.md`. This builds the WAR, removes the old Tomcat app, deploys the new one, and restarts Tomcat so all pages (including `/oceanview/db-status`) work.
 
 1. **MySQL**: Create database and run `database/schema.sql`:
    ```bash
@@ -72,9 +72,7 @@ OcenView/
 4. **Deploy**: Copy `target/oceanview.war` to Tomcat `webapps/`. **Remove the existing `webapps/oceanview/` folder** (and old `oceanview.war` if present) before copying the new WAR so Tomcat serves the new version. Then start Tomcat.
 5. **Access**: `http://localhost:8080/oceanview/`
 
-**UI not updating after redeploy?** The app uses timestamp-based cache busting (`resourceVersion` set on startup). Use the **correct deployment workflow**: stop Tomcat, remove `webapps/oceanview/` and `webapps/oceanview.war`, copy new WAR, start Tomcat, then hard refresh (Cmd+Shift+R). See **`docs/DEPLOYMENT-AND-UI-UPDATES.md`** for the full sequence and verification.
-
-**Pre-submission verification:** See **DEPLOY-AND-VERIFY.md** for step-by-step build, deploy, run, and screenshot checklist.
+**UI not updating after redeploy?** Stop Tomcat, remove `webapps/oceanview/` and `webapps/oceanview.war`, copy the new WAR, start Tomcat, then hard refresh (Cmd+Shift+R). The app uses timestamp-based cache busting on startup. See `docs/DEPLOYMENT-TOMCAT.md` for the full workflow.
 
 **Admin login:** Use a user with role `ADMIN`. Schema includes: `admin@oceanview.com` / `admin123`.  
 If your DB was created before the `role` column existed, run `database/migration-001-add-role.sql`.
@@ -118,17 +116,6 @@ Forms in `login.jsp` and `register.jsp` POST to `/login` and `/register`. Room-d
 - **Summary:** `TESTING.md` — test structure, TDD, report checklist, screenshots.
 
 Unit tests cover: price calculation, nights calculation, login/register validation (null/empty), and model getters/setters. Manual/system testing covers full guest and admin workflows.
-
-## Development Steps (from Master Prompt)
-
-1. ✅ Project architecture and folder structure  
-2. ✅ UML diagrams (Use Case, Class, Sequence)  
-3. ✅ Database design (schema.sql)  
-4. ✅ Frontend UI (HTML/CSS/JS + JSP)  
-5. ✅ Backend Servlets and services  
-6. ✅ Booking system logic  
-7. ✅ Admin dashboard (room CRUD, booking management, reports)  
-8. ✅ Testing and documentation (test plan, test cases, JUnit automation, TESTING.md)  
 
 ## Assignment Alignment (CIS6003 WRIT1)
 
