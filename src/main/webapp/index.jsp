@@ -27,9 +27,6 @@
         <li><a href="${pageContext.request.contextPath}/help.jsp">Help</a></li>
         <c:choose>
           <c:when test="${not empty sessionScope.user}">
-            <c:if test="${sessionScope.user.role == 'ADMIN'}">
-              <li><a href="${pageContext.request.contextPath}/admin/dashboard">Admin</a></li>
-            </c:if>
             <li><a href="${pageContext.request.contextPath}/my-bookings">My Bookings</a></li>
             <li class="nav-user">
               <span class="nav-user-name">Hi, <c:out value="${sessionScope.user.name}"/></span>
@@ -109,7 +106,7 @@
     <div class="footer-inner">
       <div><h4>Ocean View Resort</h4><p>Galle, Sri Lanka</p></div>
       <div><h4>Contact</h4><p>Tel: +94 91 2 234 567</p><p><a href="mailto:info@oceanview.lk">info@oceanview.lk</a></p></div>
-      <div><h4>Quick Links</h4><p><a href="${pageContext.request.contextPath}/rooms">Rooms</a></p><p><a href="${pageContext.request.contextPath}/help.jsp">Help</a></p></div>
+      <div><h4>Quick Links</h4><p><a href="${pageContext.request.contextPath}/rooms">Rooms</a></p><p><a href="${pageContext.request.contextPath}/help.jsp">Help</a></p><p><a href="${pageContext.request.contextPath}/admin/login">Admin</a></p></div>
     </div>
     <p class="footer-copy">&copy; Ocean View Resort. CIS6003.</p>
   </footer>

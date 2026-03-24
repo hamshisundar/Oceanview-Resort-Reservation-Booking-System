@@ -26,3 +26,6 @@ logs/
 
 # Local config (if you use a properties file)
 application-local.properties
+
+# Local embedded DB files
+data/

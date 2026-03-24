@@ -31,13 +31,19 @@
   </nav>
 
   <main class="container">
-    <form id="login-form" class="form-page" action="${pageContext.request.contextPath}/login" method="post">
-      <h1>Guest Login</h1>
-      <c:if test="${param.admin == '1'}">
-        <p class="text-center" style="color: var(--ocean-blue);">Please log in with an admin account to access the admin panel.</p>
-      </c:if>
+    <form id="user-login-form" class="form-page" action="${pageContext.request.contextPath}/login" method="post">
+      <input type="hidden" id="login-role" name="loginRole" value="${param.role == 'admin' ? 'admin' : 'user'}">
+      <input type="hidden" name="source" value="main-login">
+      <h1 id="login-title">${param.role == 'admin' ? 'Admin Login' : 'Guest Login'}</h1>
+      <div class="role-chooser">
+        <button type="button" id="btn-login-user" class="btn role-btn role-btn-user">Login as User</button>
+        <button type="button" id="btn-login-admin" class="btn role-btn role-btn-admin">Login as Admin</button>
+      </div>
       <c:if test="${param.error == '1'}">
         <p class="error-msg text-center">Invalid email or password. Please try again.</p>
+      </c:if>
+      <c:if test="${param.adminError == '1'}">
+        <p class="error-msg text-center">Invalid admin credentials. Please try again.</p>
       </c:if>
       <c:if test="${param.registered == '1'}">
         <p class="text-center" style="color: var(--ocean-blue);">Registration successful. Please log in.</p>
@@ -68,5 +74,30 @@
     <p class="footer-copy">&copy; Ocean View Resort. CIS6003.</p>
   </footer>
   <script src="${pageContext.request.contextPath}/js/app.js?v=${resourceVersion}"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('user-login-form');
+      var roleInput = document.getElementById('login-role');
+      var title = document.getElementById('login-title');
+      var btnUser = document.getElementById('btn-login-user');
+      var btnAdmin = document.getElementById('btn-login-admin');
+      var ctx = '${pageContext.request.contextPath}';
+      var userAction = ctx + '/login';
+      var adminAction = ctx + '/admin/login';
+
+      function setMode(mode) {
+        var isAdmin = mode === 'admin';
+        roleInput.value = isAdmin ? 'admin' : 'user';
+        form.action = isAdmin ? adminAction : userAction;
+        title.textContent = isAdmin ? 'Admin Login' : 'Guest Login';
+        btnUser.classList.toggle('btn-primary', !isAdmin);
+        btnAdmin.classList.toggle('btn-primary', isAdmin);
+      }
+
+      btnUser.addEventListener('click', function () { setMode('user'); });
+      btnAdmin.addEventListener('click', function () { setMode('admin'); });
+      setMode(roleInput.value === 'admin' ? 'admin' : 'user');
+    })();
+  </script>
 </body>
 </html>

@@ -19,9 +19,6 @@
         <li><a href="${pageContext.request.contextPath}/help.jsp">Help</a></li>
         <c:choose>
           <c:when test="${not empty sessionScope.user}">
-            <c:if test="${sessionScope.user.role == 'ADMIN'}">
-              <li><a href="${pageContext.request.contextPath}/admin/dashboard">Admin</a></li>
-            </c:if>
             <li><a href="${pageContext.request.contextPath}/my-bookings">My Bookings</a></li>
             <li class="nav-user"><span class="nav-user-name">Hi, <c:out value="${sessionScope.user.name}"/></span><a href="${pageContext.request.contextPath}/logout" class="nav-logout">Logout</a></li>
           </c:when>

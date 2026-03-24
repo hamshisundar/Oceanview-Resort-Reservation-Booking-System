@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * GET /admin/rooms - list all rooms. POST - add room.
@@ -27,6 +26,12 @@ public class AdminRoomServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
+        if (action == null || action.isEmpty()) {
+            request.setAttribute("adminNav", "rooms");
+            request.setAttribute("pageTitle", "Room Management");
+            request.getRequestDispatcher("/admin/rooms.jsp").forward(request, response);
+            return;
+        }
         if ("add".equals(action)) {
             request.getRequestDispatcher("/admin/add-room.jsp").forward(request, response);
             return;
@@ -52,8 +57,8 @@ public class AdminRoomServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/admin/rooms");
             return;
         }
-        List<Room> rooms = roomService.getAllRoomsForAdmin();
-        request.setAttribute("rooms", rooms);
+        request.setAttribute("adminNav", "rooms");
+        request.setAttribute("pageTitle", "Room Management");
         request.getRequestDispatcher("/admin/rooms.jsp").forward(request, response);
     }
 

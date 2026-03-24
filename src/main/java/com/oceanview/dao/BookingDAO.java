@@ -1,12 +1,15 @@
 package com.oceanview.dao;
 
+import com.oceanview.dto.BookingAdminRow;
 import com.oceanview.models.Booking;
-import com.oceanview.models.Room;
 import com.oceanview.utils.DBConnection;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -111,7 +114,7 @@ public class BookingDAO {
 
     public List<Booking> findAll() {
         String sql = "SELECT booking_id, reservation_number, user_id, room_id, check_in, check_out, total_price, status " +
-            "FROM bookings ORDER BY created_at DESC";
+            "FROM bookings ORDER BY booking_id DESC";
         List<Booking> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
@@ -149,9 +152,29 @@ public class BookingDAO {
         return 0;
     }
 
-    /** Revenue (sum total_price) for CONFIRMED/COMPLETED bookings this month. */
+    /** Revenue (sum total_price) for CONFIRMED/COMPLETED bookings with check-in in the current calendar month (portable SQL). */
     public double revenueThisMonth() {
-        String sql = "SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status IN ('CONFIRMED', 'COMPLETED') AND MONTH(check_in) = MONTH(CURRENT_DATE()) AND YEAR(check_in) = YEAR(CURRENT_DATE())";
+        LocalDate now = LocalDate.now();
+        LocalDate start = now.withDayOfMonth(1);
+        LocalDate end = start.plusMonths(1);
+        String sql = "SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status IN ('CONFIRMED', 'COMPLETED') " +
+            "AND check_in >= ? AND check_in < ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(start));
+            ps.setDate(2, Date.valueOf(end));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /** Lifetime revenue from confirmed and completed stays. */
+    public double revenueAllTime() {
+        String sql = "SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status IN ('CONFIRMED', 'COMPLETED')";
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -160,6 +183,109 @@ public class BookingDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /**
+     * Guests currently in-house: confirmed or pending bookings where today is within [check_in, check_out).
+     */
+    public long countActiveGuests(LocalDate today) {
+        if (today == null) today = LocalDate.now();
+        String sql = "SELECT COUNT(DISTINCT user_id) FROM bookings WHERE status IN ('CONFIRMED', 'PENDING') " +
+            "AND check_in <= ? AND check_out > ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            Date d = Date.valueOf(today);
+            ps.setDate(1, d);
+            ps.setDate(2, d);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public Map<String, Long> countBookingsGroupedByStatus() {
+        String sql = "SELECT status, COUNT(*) AS c FROM bookings GROUP BY status";
+        Map<String, Long> map = new LinkedHashMap<>();
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                String stName = rs.getString("status");
+                map.put(stName != null ? stName : "UNKNOWN", rs.getLong("c"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    /**
+     * Admin booking list with guest and room names. sort: check_in | check_out | total_price | created_at | booking_id
+     */
+    public List<BookingAdminRow> findAllForAdmin(String statusFilter, String sort, String direction) {
+        String sortCol = sortColumn(sort);
+        String dir = "ASC".equalsIgnoreCase(direction) ? "ASC" : "DESC";
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.booking_id, b.reservation_number, b.user_id, b.room_id, b.check_in, b.check_out, b.total_price, b.status, " +
+                "u.name AS guest_name, u.email AS guest_email, r.room_name AS room_name " +
+                "FROM bookings b INNER JOIN users u ON b.user_id = u.user_id INNER JOIN rooms r ON b.room_id = r.room_id ");
+        List<Object> params = new ArrayList<>();
+        if (statusFilter != null && !statusFilter.isBlank() && !"ALL".equalsIgnoreCase(statusFilter)) {
+            sql.append("WHERE b.status = ? ");
+            params.add(statusFilter.trim().toUpperCase());
+        }
+        sql.append("ORDER BY ").append(sortCol).append(" ").append(dir);
+
+        List<BookingAdminRow> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapAdminRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    private static String sortColumn(String sort) {
+        if (sort == null) return "b.check_in";
+        switch (sort.trim().toLowerCase()) {
+            case "check_out":
+                return "b.check_out";
+            case "total_price":
+                return "b.total_price";
+            case "created_at":
+                return "b.created_at";
+            case "booking_id":
+                return "b.booking_id";
+            default:
+                return "b.check_in";
+        }
+    }
+
+    private static BookingAdminRow mapAdminRow(ResultSet rs) throws SQLException {
+        BookingAdminRow row = new BookingAdminRow();
+        row.setBookingId(rs.getInt("booking_id"));
+        row.setReservationNumber(rs.getString("reservation_number"));
+        row.setUserId(rs.getInt("user_id"));
+        row.setRoomId(rs.getInt("room_id"));
+        Date ci = rs.getDate("check_in");
+        Date co = rs.getDate("check_out");
+        row.setCheckIn(ci != null ? ci.toString() : null);
+        row.setCheckOut(co != null ? co.toString() : null);
+        row.setTotalPrice(rs.getDouble("total_price"));
+        row.setStatus(rs.getString("status"));
+        row.setGuestName(rs.getString("guest_name"));
+        row.setGuestEmail(rs.getString("guest_email"));
+        row.setRoomName(rs.getString("room_name"));
+        return row;
     }
 
     /** Room ID with most bookings (for reports). */

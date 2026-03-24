@@ -29,7 +29,7 @@
     <!-- Use built-in H2 by default so registration works without MySQL. Set to false to use MySQL (db.url, db.user, db.password). -->
     <context-param>
         <param-name>db.forceH2</param-name>
-        <param-value>true</param-value>
+        <param-value>false</param-value>
     </context-param>
 
     <listener>

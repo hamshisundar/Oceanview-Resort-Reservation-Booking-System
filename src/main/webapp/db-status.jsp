@@ -15,8 +15,9 @@
       <ul class="nav-links">
         <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
         <li><a href="${pageContext.request.contextPath}/rooms">Rooms</a></li>
-        <li><a href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
+        <li><a href="${pageContext.request.contextPath}/help.jsp">Help</a></li>
         <li><a href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
+        <li><a href="${pageContext.request.contextPath}/register.jsp" class="btn">Register</a></li>
       </ul>
     </div>
   </nav>

@@ -2,6 +2,7 @@ package com.oceanview.services;
 
 import com.oceanview.dao.BookingDAO;
 import com.oceanview.dao.RoomDAO;
+import com.oceanview.dto.BookingAdminRow;
 import com.oceanview.models.Booking;
 import com.oceanview.models.Room;
 
@@ -56,6 +57,10 @@ public class BookingService {
 
     public List<Booking> getAllBookings() {
         return bookingDAO.findAll();
+    }
+
+    public List<BookingAdminRow> getAdminBookings(String statusFilter, String sort, String direction) {
+        return bookingDAO.findAllForAdmin(statusFilter, sort, direction);
     }
 
     public boolean cancelBooking(int bookingId) {

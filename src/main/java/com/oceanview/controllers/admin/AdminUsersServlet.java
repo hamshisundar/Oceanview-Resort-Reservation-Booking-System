@@ -8,16 +8,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * GET /admin/reports - booking and revenue reports.
+ * User management shell — data loaded via /api/users.
  */
-@WebServlet("/admin/reports")
-public class AdminReportServlet extends HttpServlet {
+@WebServlet("/admin/users")
+public class AdminUsersServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("adminNav", "reports");
-        request.setAttribute("pageTitle", "Booking & Revenue Reports");
-        request.getRequestDispatcher("/admin/reports.jsp").forward(request, response);
+        request.setAttribute("adminNav", "users");
+        request.setAttribute("pageTitle", "Users");
+        request.getRequestDispatcher("/admin/users.jsp").forward(request, response);
     }
 }

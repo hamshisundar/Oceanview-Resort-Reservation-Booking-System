@@ -10,32 +10,23 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Protects /admin/* so only users with role ADMIN can access.
+ * Protects JSON API under /api/* — admin session required.
  */
-@WebFilter("/admin/*")
-public class AdminFilter implements Filter {
+@WebFilter("/api/*")
+public class ApiAdminFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        String uri = req.getRequestURI();
-        String cp = req.getContextPath();
-        String path = uri.startsWith(cp) ? uri.substring(cp.length()) : uri;
-        if ("/admin/login".equals(path) || "/admin/login.jsp".equals(path)) {
-            chain.doFilter(request, response);
-            return;
-        }
-        // Static assets for admin pages (login shell, console) — must not require a session or CSS/JS never load
-        if (path.startsWith("/admin/css/") || path.startsWith("/admin/js/")) {
-            chain.doFilter(request, response);
-            return;
-        }
         HttpSession session = req.getSession(false);
         User user = session != null ? (User) session.getAttribute("user") : null;
         if (user == null || !"ADMIN".equals(user.getRole())) {
-            res.sendRedirect(req.getContextPath() + "/admin/login");
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.setCharacterEncoding("UTF-8");
+            res.setContentType("application/json;charset=UTF-8");
+            res.getWriter().write("{\"error\":\"Unauthorized\"}");
             return;
         }
         chain.doFilter(request, response);

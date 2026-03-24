@@ -3,7 +3,7 @@
 # Run from project root: ./deploy.sh
 
 set -e
-PROJECT_ROOT="/Users/hamshi/Documents/OcenView"
+PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 WEBAPPS="/opt/homebrew/opt/tomcat@9/libexec/webapps"
 CATALINA="/opt/homebrew/opt/tomcat@9/bin/catalina"
 WAR_NAME="oceanview"
